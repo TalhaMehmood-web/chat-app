@@ -4,4 +4,4 @@ backend/.env
 backend/package-lock.json
 
 frontend/package-lock.json
-frontend/README.node_modules
+frontend/README.md
