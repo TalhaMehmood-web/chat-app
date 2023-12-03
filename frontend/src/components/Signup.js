@@ -1,7 +1,7 @@
 import { Button, FormControl, FormLabel, Input, InputGroup, InputRightElement, VStack } from '@chakra-ui/react';
 import { useState, React } from 'react';
 import { useToast } from '@chakra-ui/react';
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const Signup = () => {
@@ -14,9 +14,8 @@ const Signup = () => {
     const [pic, setPic] = useState();
     const [loading, setLoading] = useState(false);
     const toast = useToast()
-    const history = useHistory();
-    // const [picLoading, setPicLoading] = useState(false);
-    // https://api.cloudinary.com/v1_1/gup-shup
+    const navigate = useNavigate();
+
     function handleClick() {
         setShow(!show)
     }
@@ -97,7 +96,7 @@ const Signup = () => {
                 }
             }
             const { data } = await axios.post("/api/user/signup", { name, email, password, pic }, confiq);
-            console.log(data);
+            console.log(data.token);
             toast({
                 title: 'Successfully singed up',
                 status: 'success',
@@ -105,8 +104,8 @@ const Signup = () => {
                 isClosable: true,
                 position: "bottom"
             })
-            localStorage.setItem("userInfo", JSON.stringify(data))
-            history.push("/chats")
+            localStorage.setItem("token", JSON.stringify(data.token))
+            navigate("/chats")
             setLoading(false)
         } catch (error) {
 

@@ -8,5 +8,5 @@ router.post("/group", protect, createGroup)
 router.get("/", protect, getAllChats)
 router.put("/rename-group", protect, renameGroup)
 router.put("/add-to-group", protect, addToGroup)
-router.put("remove-from-group", protect, removeFromGroup)
+router.put("/remove-from-group", protect, removeFromGroup)
 export default router;

@@ -1,7 +1,7 @@
 import { React, useState } from 'react';
 import { Button, FormControl, FormLabel, Input, InputGroup, InputRightElement, VStack } from '@chakra-ui/react';
 import { useToast } from '@chakra-ui/react';
-import { useHistory } from 'react-router-dom/cjs/react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import axios from "axios";
 const Login = () => {
     const [show, setShow] = useState(false);
@@ -9,7 +9,7 @@ const Login = () => {
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const toast = useToast()
-    const history = useHistory();
+    const navigate = useNavigate();
     function handleClick() {
         setShow(!show)
     }
@@ -35,7 +35,7 @@ const Login = () => {
                 }
             }
             const { data } = await axios.post("/api/user/login", { email, password }, confiq);
-            console.log(data);
+            console.log(data.token);
             toast({
                 title: 'Successfully  logged in',
                 status: 'success',
@@ -43,13 +43,14 @@ const Login = () => {
                 isClosable: true,
                 position: "bottom"
             })
-            localStorage.setItem("userInfo", JSON.stringify(data))
-            history.push("/chats");
+            localStorage.setItem("token", JSON.stringify(data.token))
+            navigate("/chats");
             setLoading(false)
         } catch (error) {
+            console.log(error.response);
             toast({
-                title: 'Error Occured!',
-                description: error.message,
+                title: `${error.response.data.error}`,
+                description: "Please Enter a correct password",
                 status: 'warning',
                 duration: 5000,
                 isClosable: true,

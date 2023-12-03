@@ -6,8 +6,8 @@ import {
     TabPanels,
     TabPanel
 } from "@chakra-ui/react"
-import Signup from './Signup.js';
-import Login from './Login.js';
+import Signup from '../components/Signup.js';
+import Login from '../components/Login.js';
 
 const Home = () => {
     return (

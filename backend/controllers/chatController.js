@@ -114,7 +114,31 @@ export const renameGroup = asyncHandler(async (req, res) => {
     }
 })
 export const removeFromGroup = asyncHandler(async (req, res) => {
+    const { chatId, userId } = req.body;
+    if (!chatId && !userId) {
+        return res.status(400).json("fill all the fields")
+    }
+    try {
 
+        const removeUser = await Chat.findByIdAndUpdate(
+            chatId,
+            {
+                $pull: { users: userId },
+            },
+            {
+                new: true,
+            },
+        )
+        const newGroup = await Chat.findOne({ _id: removeUser._id })
+            .populate("users", "-password")
+            .populate("groupAdmin", "-password")
+        if (!newGroup) {
+            return res.status(404).json("Can't add new user")
+        }
+        res.status(200).json(newGroup)
+    } catch (error) {
+        res.status(400).json({ message: error.message })
+    }
 })
 export const addToGroup = asyncHandler(async (req, res) => {
     const { chatId, userId } = req.body;
