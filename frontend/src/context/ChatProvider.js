@@ -7,10 +7,12 @@ const ChatContext = createContext();
 const ChatProvider = ({ children }) => {
     const navigate = useNavigate();
     const [user, setUser] = useState();
+    const [selectedChat, setSelectedChat] = useState();
+    const [chats, setChats] = useState([]);
+    const tokenString = localStorage.getItem("token");
+    const token = tokenString ? JSON.parse(tokenString) : null;
 
     useEffect(() => {
-        const token = JSON.parse(localStorage.getItem("token"));
-
         if (token) {
             const userData = jwtDecode(token);
             setUser(userData);
@@ -18,9 +20,12 @@ const ChatProvider = ({ children }) => {
             setUser(null);
             navigate("/");
         }
-    }, [navigate]);
+    }, [navigate, token]);
 
-    return <ChatContext.Provider value={{ user, setUser }}>{children}</ChatContext.Provider>;
+    // console.log("token2", token);
+    // console.log(user);
+
+    return <ChatContext.Provider value={{ user, setUser, selectedChat, setSelectedChat, chats, setChats }}>{children}</ChatContext.Provider>;
 };
 
 export const ChatState = () => {

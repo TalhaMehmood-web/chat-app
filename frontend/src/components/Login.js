@@ -35,7 +35,6 @@ const Login = () => {
                 }
             }
             const { data } = await axios.post("/api/user/login", { email, password }, confiq);
-            console.log(data.token);
             toast({
                 title: 'Successfully  logged in',
                 status: 'success',

@@ -7,7 +7,17 @@ const ProfileModel = ({ user, children }) => {
             {children ? (
                 <span onClick={onOpen} >{children} </span>
             ) : (
-                <span className="material-symbols-outlined" onClick={onOpen} >
+                <span className="material-symbols-outlined"
+                    style={
+                        {
+                            cursor: "pointer",
+                            border: "1px solid gray",
+                            padding: "2px 5px",
+                            borderRadius: "5px",
+
+
+                        }}
+                    onClick={onOpen} >
                     visibility
                 </span>
             )}

@@ -12,7 +12,15 @@ export const RegisterUser = asyncHandler(async (req, res) => {
         const user = await User.signUp(name, email, password, pic)
         // createToken
         const token = createToken(user._id, user.name, user.email, user.pic)
-        res.status(201).json({ user, token })
+        res.status(201).json(
+            {
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+                isAdmin: user.isAdmin,
+                pic: user.pic,
+                token
+            })
 
 
     } catch (error) {
@@ -27,7 +35,14 @@ export const authUser = asyncHandler(async (req, res) => {
         const user = await User.login(email, password)
         const token = createToken(user._id, user.name, user.email, user.pic);
 
-        res.status(201).json({ token, user })
+        res.status(201).json({
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            isAdmin: user.isAdmin,
+            pic: user.pic,
+            token,
+        })
 
     } catch (error) {
         res.status(400).json({ error: error.message })

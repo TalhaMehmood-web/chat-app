@@ -1,4 +1,4 @@
-import { Box, Button, Tooltip, Text, Menu, MenuButton, Avatar, MenuList, MenuItem, MenuDivider, Drawer, useDisclosure, DrawerOverlay, DrawerContent, DrawerHeader, DrawerBody, Input } from '@chakra-ui/react';
+import { Box, Button, Tooltip, Text, Menu, MenuButton, Avatar, MenuList, MenuItem, MenuDivider, Drawer, useDisclosure, DrawerOverlay, DrawerContent, DrawerHeader, DrawerBody, Input, Spinner } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import { ChatState } from '../context/ChatProvider';
 import ProfileModel from './ProfileModel';
@@ -7,14 +7,20 @@ import { useToast } from '@chakra-ui/react';
 import axios from '../utils/AxiosConfiq';
 import ChatLoading from './ChatLoading';
 import UserList from './UserList';
+
 const SideDrawer = () => {
-    const { user } = ChatState();
+    const { user, setSelectedChat, chats, setChats } = ChatState();
     const navigate = useNavigate()
     const { isOpen, onOpen, onClose } = useDisclosure()
     const [search, setSearch] = useState("");
     const [loading, setLoading] = useState(false)
     const [searchResults, setSearchResults] = useState([])
+    const [chatLoading, setChatLoading] = useState(false)
     const toast = useToast();
+    if (!user) {
+        // You might want to render something else or return early
+        return <p>Loading...</p>;
+    }
     const logout = () => {
         localStorage.removeItem("token")
         navigate("/")
@@ -49,8 +55,24 @@ const SideDrawer = () => {
             }
         }
     }
-    const accessChat = (userId) => {
-
+    const accessChat = async (userId) => {
+        try {
+            setChatLoading(true)
+            const { data } = await axios.post(`chats/${user._id}`, { userId })
+            if (!chats.find(c => c._id === data._id)) setChats([data, ...chats])
+            setSelectedChat(data)
+            setChatLoading(false)
+            onClose()
+        } catch (error) {
+            toast({
+                title: 'Error fetching the chats',
+                description: error.message,
+                status: 'warning',
+                duration: 2500,
+                isClosable: true,
+                position: "top-right"
+            })
+        }
     }
     return (
         <>
@@ -149,6 +171,10 @@ const SideDrawer = () => {
                                 ))
                             )
                         }
+                        {
+                            chatLoading && <Spinner ml={"auto"} display={"flex"} />
+                        }
+
                     </DrawerBody>
                 </DrawerContent>
 
