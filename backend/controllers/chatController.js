@@ -75,7 +75,7 @@ export const createGroup = asyncHandler(async (req, res) => {
         return res.status(400).json("please fill all the fields")
     }
     let users = JSON.parse(req.body.users)
-    if (users.length < 2) {
+    if (users.length < 1) {
         return res.status(200).json("group must have at least two users")
     }
     const admin = await User.findById(adminId)

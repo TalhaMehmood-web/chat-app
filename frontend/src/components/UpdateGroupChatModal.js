@@ -41,7 +41,7 @@ const UpdateGroupChatModal = ({ fetchMessages, fetchAgain, setFetchAgain }) => {
 
         try {
             setLoading(true);
-            const { data } = await axios.get(`user?search=${search}`);
+            const { data } = await axios.get(`user/all-user?search=${search}`);
 
             setLoading(false);
             setSearchResult(data);
@@ -64,13 +64,21 @@ const UpdateGroupChatModal = ({ fetchMessages, fetchAgain, setFetchAgain }) => {
         try {
             setRenameLoading(true);
             const { data } = await axios.put(
-                `chats/rename`,
+                `chats/rename-group`,
                 {
                     chatId: selectedChat._id,
                     chatName: groupChatName,
                 },
             );
-
+            if (data) {
+                toast({
+                    title: "Group name updated successfully",
+                    status: "success",
+                    duration: 3000,
+                    isClosable: true,
+                    position: "bottom",
+                });
+            }
             setSelectedChat(data);
             setFetchAgain(!fetchAgain);
             setRenameLoading(false);
@@ -113,24 +121,21 @@ const UpdateGroupChatModal = ({ fetchMessages, fetchAgain, setFetchAgain }) => {
 
         try {
             setLoading(true);
-            const config = {
-                headers: {
-                    Authorization: `Bearer ${user.token}`,
-                },
-            };
+
             const { data } = await axios.put(
-                `/api/chat/groupadd`,
+                `chats/add-to-group`,
                 {
                     chatId: selectedChat._id,
                     userId: user1._id,
                 },
-                config
-            );
 
+            );
+            setSearch("")
             setSelectedChat(data);
             setFetchAgain(!fetchAgain);
             setLoading(false);
         } catch (error) {
+            setSearch("")
             toast({
                 title: "Error Occurred!",
                 description: error.response.data.message,
@@ -167,13 +172,16 @@ const UpdateGroupChatModal = ({ fetchMessages, fetchAgain, setFetchAgain }) => {
             );
 
             user1._id === user._id ? setSelectedChat() : setSelectedChat(data);
-            setFetchAgain(!fetchAgain);
-            fetchMessages();
             setLoading(false);
+            setFetchAgain(!fetchAgain);
+            fetchMessages()
+            fetchMessages();
+
         } catch (error) {
+            setLoading(false);
             toast({
                 title: "Error Occurred!",
-                description: error.response.data.message,
+                description: error?.response?.data,
                 status: "error",
                 duration: 5000,
                 isClosable: true,
@@ -239,7 +247,7 @@ const UpdateGroupChatModal = ({ fetchMessages, fetchAgain, setFetchAgain }) => {
 
                         {loading ? (
                             <Spinner size="lg" />
-                        ) : (
+                        ) : (search !== "" &&
                             searchResult?.map((user) => (
                                 <UserList
                                     key={user._id}

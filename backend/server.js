@@ -4,6 +4,7 @@ import bodyParser from "body-parser";
 import mongoose from "mongoose";
 import userRoutes from "../backend/routes/userRouter.js"
 import chatRoutes from "./routes/chatRoutes.js";
+import messageRoutes from "./routes/messageRoutes.js"
 import cors from "cors";
 import colors from "colors";
 const app = express();
@@ -16,6 +17,7 @@ app.use(cors({
 }))
 app.use("/api/user", userRoutes)
 app.use("/api/chats", chatRoutes)
+app.use("/api/message", messageRoutes)
 mongoose.connect(process.env.MONGO_URL);
 mongoose.connection.on("connected", () => {
     console.log("database connected".blue.bold);
