@@ -7,13 +7,22 @@ import ProfileModel from './ProfileModel';
 import UpdateGroupChatModal from './UpdateGroupChatModal';
 import axios from '../utils/AxiosConfiq';
 import ScrollableChat from './ScrollableChat';
+import io from "socket.io-client";
+
+
+import { useRef } from 'react';
 const SingleChat = ({ fetchAgain, setFetchAgain }) => {
-    const { user, selectedChat, setSelectedChat } = ChatState();
+    const { user, selectedChat, setSelectedChat, notification, setNotification } = ChatState();
     const [messages, setMessages] = useState([]);
     const [loading, setLoading] = useState(false);
     const [newMessage, setNewMessage] = useState("");
-    const [isTyping, setIsTyping] = useState(true);
+    const [isTyping, setIsTyping] = useState(false);
+    const [socketConnected, setSocketConnected] = useState(false);
     const toast = useToast();
+    const ENDPOINT = "http://localhost:5000";
+    var selectedChatCompareRef = useRef();
+    const socketRef = useRef();
+
     const fetchMessages = useCallback(async () => {
         if (!selectedChat) return;
 
@@ -27,10 +36,10 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             setMessages(data);
             setLoading(false);
 
-            //   socket.emit("join chat", selectedChat._id);
+            socketRef.current.emit("join chat", selectedChat._id);
         } catch (error) {
             toast({
-                title: "Error Occured!",
+                title: "Error Occurred!",
                 description: "Failed to Load the Messages",
                 status: "error",
                 duration: 5000,
@@ -38,16 +47,10 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                 position: "bottom",
             });
         }
-    }, [selectedChat, toast])
-    useEffect(() => {
-
-        fetchMessages();
-    }, [selectedChat, toast, fetchMessages])
-
-    // console.log(messages);
+    }, [selectedChat, toast, socketRef])
     const sendMessage = async (event) => {
         if (event.key === "Enter" && newMessage) {
-            // socket.emit("stop typing", selectedChat._id);
+            socketRef.current.emit("stop typing", selectedChat._id);
             try {
                 setNewMessage("");
                 const { data } = await axios.post(
@@ -59,13 +62,13 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                     },
 
                 );
-                // socket.emit("new message", data);
+                socketRef.current.emit("new message", data);
                 setMessages([...messages, data]);
                 // console.log(data);
 
             } catch (error) {
                 toast({
-                    title: "Error Occured!",
+                    title: "Error Occurred!",
                     description: "Failed to send the Message",
                     status: "error",
                     duration: 5000,
@@ -75,9 +78,64 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             }
         }
     };
+
+
+
+    useEffect(() => {
+        socketRef.current = io(ENDPOINT);
+        socketRef.current.emit("setup", user);
+        socketRef.current.on("connected", () => setSocketConnected(true));
+        socketRef.current.on("typing", () => setIsTyping(true));
+        socketRef.current.on("stop typing", () => setIsTyping(false));
+
+        return () => {
+
+            socketRef.current.disconnect();
+        };
+    }, [ENDPOINT, user]);
+
+
+    useEffect(() => {
+
+        fetchMessages();
+        selectedChatCompareRef.current = selectedChat;
+    }, [selectedChat, toast, fetchMessages, socketRef, selectedChatCompareRef])
+    useEffect(() => {
+        socketRef.current.on("message received", (newMessageReceived) => {
+            if (
+                !selectedChatCompareRef.current ||
+                selectedChatCompareRef.current._id !== newMessageReceived.chat._id
+            ) {
+                if (!notification.includes(newMessageReceived)) {
+                    setNotification([newMessageReceived, ...notification]);
+                    setFetchAgain(!fetchAgain);
+                }
+            } else {
+                setMessages([...messages, newMessageReceived]);
+            }
+        });
+    });
     const typingHandler = (e) => {
-        setNewMessage(e.target.value)
+        setNewMessage(e.target.value);
+
+        if (!socketConnected) return;
+
+        if (!isTyping) {
+            setIsTyping(true);
+            socketRef.current.emit("typing", selectedChat._id);
+        }
+        let lastTypingTime = new Date().getTime();
+        var timerLength = 2000;
+        setTimeout(() => {
+            var timeNow = new Date().getTime();
+            var timeDiff = timeNow - lastTypingTime;
+            if (timeDiff >= timerLength && isTyping) {
+                socketRef.current.emit("stop typing", selectedChat._id);
+                setIsTyping(false);
+            }
+        }, timerLength);
     }
+
     return (
         <>
             {
@@ -149,18 +207,19 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                                 isRequired
                                 mt={3}
                             >
-                                {/* {isTyping ? (
-                                           <div>
-                                               <Lottie
-                                                   options={defaultOptions}
-                                                   // height={50}
-                                                   width={70}
-                                                   style={{ marginBottom: 15, marginLeft: 0 }}
-                                               />
-                                           </div>
-                                       ) : (
-                                           <></>
-                                       )} */}
+                                {isTyping ? (
+                                    <p
+                                        style={{
+                                            margin: "2px 0px 5px 10px ",
+                                            color: "gray"
+                                        }}
+                                    >
+                                        typing...
+                                    </p>
+
+                                ) : (
+                                    <></>
+                                )}
                                 <Input
                                     variant="filled"
                                     bg="#E0E0E0"

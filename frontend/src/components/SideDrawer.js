@@ -7,9 +7,11 @@ import { useToast } from '@chakra-ui/react';
 import axios from '../utils/AxiosConfiq';
 import ChatLoading from './ChatLoading';
 import UserList from './UserList';
+import { BellIcon } from '@chakra-ui/icons';
+import { getSender } from '../config/ChatLogics';
 
 const SideDrawer = () => {
-    const { user, setSelectedChat, chats, setChats } = ChatState();
+    const { user, setSelectedChat, chats, setChats, notification, setNotification } = ChatState();
     const navigate = useNavigate()
     const { isOpen, onOpen, onClose } = useDisclosure()
     const [search, setSearch] = useState("");
@@ -119,10 +121,25 @@ const SideDrawer = () => {
                 >
                     <Menu >
                         <MenuButton p={1} >
-                            <span className="material-symbols-outlined " style={{ marginRight: "5px" }} >
-                                notifications
-                            </span>
+                            <BellIcon fontSize={"2xl"} m={1} />
                         </MenuButton>
+                        <MenuList textAlign={"center"} >
+
+                            {!notification.length && "No New Messages"}
+                            {notification.map((notif) => (
+                                <MenuItem
+                                    key={notif._id}
+                                    onClick={() => {
+                                        setSelectedChat(notif.chat);
+                                        setNotification(notification.filter((n) => n !== notif));
+                                    }}
+                                >
+                                    {notif.chat.isGroupChat
+                                        ? `New Message in ${notif.chat.chatName}`
+                                        : `New Message from ${getSender(user, notif.chat.users)}`}
+                                </MenuItem>
+                            ))}
+                        </MenuList>
                     </Menu>
                     <Menu>
                         <MenuButton as={Button} rightIcon={<span className="material-symbols-outlined">
